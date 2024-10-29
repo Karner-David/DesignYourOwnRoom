@@ -11,7 +11,7 @@ CORS(app)
 def home():
     return jsonify({"message": "Welcome to the 3D Model API!"})
 
-model = tf.keras.models.load_model('./model_checkpoint.keras')
+model = tf.keras.models.load_model('../../model_checkpoint.keras')
 default_material_properties = [0.5, 0.5, 0.5, # diffuse (Kd)
                                0.1, 0.1, 0.1, # specular (Ks)
                                0.5,           # shininess (Ns)
