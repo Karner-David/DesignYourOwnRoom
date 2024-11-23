@@ -1,18 +1,40 @@
 import React, { useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
 function ModelViewer({ modelData }) {
-    // Separate vertices and faces if provided
-    const vertices = modelData?.vertices;  
-    const faces = modelData?.faces;        
+    const vertices = modelData?.vertices || [];
+    const faces = modelData?.faces || [];
 
+    const scaleFactor = 10;
     const points = useMemo(() => {
-        const scaleFactor = 10;
-        return modelData?.map(([x, y, z]) => ({
-            position: [x * scaleFactor, y * scaleFactor, z * scaleFactor]
+        return vertices.map(([x, y, z]) => ({
+            position: [x * scaleFactor, y * scaleFactor, z * scaleFactor],
         }));
-    }, [modelData]);
+    }, [vertices]);
+
+    const calculateBoundingBoxCenter = (vertices) => {
+        if (!vertices.length) return [0, 0, 0];
+
+        const x = vertices.map(([x]) => x);
+        const y = vertices.map(([, y]) => y);
+        const z = vertices.map(([, , z]) => z);
+
+        const centerX = (Math.max(...x) + Math.min(...x)) / 2;
+        const centerY = (Math.max(...y) + Math.min(...y)) / 2;
+        const centerZ = (Math.max(...z) + Math.min(...z)) / 2;
+
+        return [centerX * scaleFactor, centerY * scaleFactor, centerZ * scaleFactor];
+    };
+
+    const center = calculateBoundingBoxCenter(vertices);
+
+    const CameraAdjuster = () => {
+        const { camera } = useThree();
+        camera.position.set(center[0], center[1], center[2] + 15); // Adjust the 15 to control distance
+        camera.lookAt(center[0], center[1], center[2]);
+        return null;
+    };
 
     return (
         <Canvas camera={{ position: [0, 0, 20] }} style={{ height: '500px', width: '100%' }}>
@@ -20,8 +42,10 @@ function ModelViewer({ modelData }) {
             <pointLight position={[10, 10, 10]} />
             <OrbitControls />
 
-            {/* Render mesh if vertices and faces are provided */}
-            {vertices && faces && (
+            <CameraAdjuster />
+
+            {/* Render the mesh */}
+            {vertices.length > 0 && faces.length > 0 && (
                 <mesh>
                     <bufferGeometry>
                         <bufferAttribute
@@ -37,17 +61,9 @@ function ModelViewer({ modelData }) {
                             itemSize={1}
                         />
                     </bufferGeometry>
-                    <meshStandardMaterial color="blue" wireframe={true} />
+                    <meshStandardMaterial color="blue" wireframe />
                 </mesh>
             )}
-
-            {/* Otherwise, fallback to rendering point cloud */}
-            {!vertices && points && points.map((point, index) => (
-                <mesh key={index} position={point.position}>
-                    <sphereGeometry args={[0.1, 16, 16]} />
-                    <meshStandardMaterial color="blue" />
-                </mesh>
-            ))}
         </Canvas>
     );
 }

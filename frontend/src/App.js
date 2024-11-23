@@ -8,12 +8,12 @@ const App = () => {
     const handleUpload = (data) => {
         console.log("Received 3D Model Data:", data); 
     
-        if (data && data["3D_model_data"] && data["3D_model_data"].vertices && data["3D_model_data"].faces) {
-            const vertices = data["3D_model_data"].vertices; 
-            const faces = data["3D_model_data"].faces;       
+        if (data && data.vertices && data.faces) {
+            const vertices = data.vertices; 
+            const faces = data.faces;       
     
             setModelData({ vertices, faces }); 
-            console.log("Formatted 3D Model data: ", { vertices, faces }); 
+            console.log("Formatted 3D Model data: ", { vertices, faces });
         } else {
             console.error("Unexpected data format received from backend:", data);
             alert("Failed to process the uploaded image. Please try again.");
